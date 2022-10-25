@@ -1,0 +1,2 @@
+# About Action List
+This library implements the "action list"(link https://gamedevelopment.tutsplus.com/tutorials/the-action-list-data-structure-good-for-ui-ai-animations-and-more--gamedev-9264) data structure. This structure or paradigm is a useful alternative to state machines, and is especially suited for problems that have a temporal component.
