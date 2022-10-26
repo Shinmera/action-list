@@ -135,7 +135,7 @@
   NIL)
 
 (defmethod lanes ((action action))
-  (1- (ash 1 32)))
+  1)
 
 (defmethod start ((action action)))
 
