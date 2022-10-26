@@ -18,7 +18,7 @@
 (defgeneric push-back (new-action action-list))
 (defgeneric push-before (new-action action))
 (defgeneric push-after (new-action action))
-(defgeneric remove (action action-list))
+(defgeneric pop-action (action action-list))
 
 (defgeneric update (object dt))
 (defgeneric duration (object))

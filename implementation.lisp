@@ -43,9 +43,9 @@
                (setf (car cons) new)
                (setf (cdr cons) (list* old (cdr cons)))
                (return))
-          finally (error "Cannot insert~%  ~~%before~%  ~a~%as it's no longer contained on the list~%  ~a"
+          finally (error "Cannot insert~%  ~a~%before~%  ~a~%as it's no longer contained on the list~%  ~a"
                          new old (action-list old)))
-    (start action)
+    (start new)
     new))
 
 (defmethod push-after ((new action) (old action))
@@ -56,12 +56,12 @@
                (setf (action-list new) list)
                (setf (cdr cons) (list* new (cdr cons)))
                (return))
-          finally (error "Cannot insert~%  ~~%after~%  ~a~%as it's no longer contained on the list~%  ~a"
+          finally (error "Cannot insert~%  ~a~%after~%  ~a~%as it's no longer contained on the list~%  ~a"
                          new old (action-list old)))
-    (start action)
+    (start new)
     new))
 
-(defmethod remove ((action action) (list action-list))
+(defmethod pop-action ((action action) (list action-list))
   (setf (actions list) (delete action (actions list)))
   (slot-makunbound (action-list action) 'action-list)
   action)
@@ -78,18 +78,42 @@
                (when (finished-p action)
                  (stop action)
                  ;; FIXME: This could be optimised to not have to search through the list again.
-                 (remove action list))))))
+                 (pop-action action list))))))
 
 ;; TODO: implement these. It's a bit tricky, as we need to regard
 ;;       blocking and non-blocking actions and multiple lanes
 (defmethod duration ((list action-list))
-  )
+  (remaining-time list))
 
 (defmethod elapsed-time ((list action-list))
-  )
+  (let ((lanes (1- (ash 1 32)))
+        (elapsed 0.0)
+        (choices (list 0.0)))
+    (loop for action in (actions list)
+          do (when (< 0 (logand lanes (lanes action)))
+               (cond ((blocking-p action)
+                      (incf elapsed (reduce #'max choices))
+                      (incf elapsed (elapsed-time action))
+                      (setf choices (list 0.0))
+                      (setf lanes (logandc2 lanes (lanes action))))
+                     (T
+                      (push (elapsed-time action) choices)))))
+    (incf elapsed (reduce #'max choices))))
 
 (defmethod remaining-time ((list action-list))
-  )
+  (let ((lanes (1- (ash 1 32)))
+        (remaining 0.0)
+        (choices (list 0.0)))
+    (loop for action in (actions list)
+          do (when (< 0 (logand lanes (lanes action)))
+               (cond ((blocking-p action)
+                      (incf remaining (reduce #'max choices))
+                      (incf remaining (remaining-time action))
+                      (setf choices (list 0.0))
+                      (setf lanes (logandc2 lanes (lanes action))))
+                     (T
+                      (push (remaining-time action) choices)))))
+    (incf remaining (reduce #'max choices))))
 
 (defmethod blocking-p ((list action-list))
   (loop for action in (actions list)

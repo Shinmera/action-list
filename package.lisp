@@ -15,7 +15,7 @@
    #:push-back
    #:push-before
    #:push-after
-   #:remove
+   #:pop-action
    #:update
    #:duration
    #:elapsed-time
