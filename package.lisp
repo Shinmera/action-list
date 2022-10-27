@@ -25,8 +25,10 @@
    #:lanes
    #:start
    #:stop
+   #:clone-into
    #:time-limited-action
    #:lane-limited-action
+   #:dummy-action
    #:delay-action
    #:synchronize-action
    #:action-list-action

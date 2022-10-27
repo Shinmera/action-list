@@ -1,2 +1,20 @@
 # About Action List
 This library implements the "action list"(link https://gamedevelopment.tutsplus.com/tutorials/the-action-list-data-structure-good-for-ui-ai-animations-and-more--gamedev-9264) data structure. This structure or paradigm is a useful alternative to state machines, and is especially suited for problems that have a temporal component.
+
+## How To
+The interface is all rather straight-forward to use, with a variety of push functions to insert actions at the appropriate places.
+
+:: common lisp
+(make-instance 'action-list:action-list)
+(action-list:push-front (make-instance 'action-list:basic-action :update (lambda (a dt) (print dt)) :duration 1.0) *)
+(dotimes (i 20)
+  (action-list:update ** 0.1))
+::
+
+You can either subclass ``action`` to roll your own types, or use the ``basic-action`` and supply the various parts you want to customise with closures.
+
+If an action is ``blocking-p``, it will prevent later actions in the list from running. Without blocking actions, all actions will be updated in sequence. Blocking this from happening can be useful to ensure a sequence of actions take place.
+
+To this end there are also the shorthand action types ``delay-action`` (to delay updates until a given point) and ``synchronize-action`` to block until all "parallel" actions before it have completed.
+
+The ``action-list`` is also a standard ``sequence`` so you can iterate over it with ``sequences:dosequence`` and use other standard sequence operators. Note that an ``action`` instance can only be contained on a single ``action-list`` at any time. This also means that copying an ``action-list`` is not possible, unless ``clone-into`` is properly implemented for each ``action`` type that you make use of.

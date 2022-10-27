@@ -20,6 +20,40 @@
 (defmethod sequences:make-sequence-iterator ((list action-list) &rest args)
   (apply #'sequences:make-sequence-iterator (actions list) args))
 
+(defmethod sequences:make-sequence-like ((list action-list) length &rest args)
+  (apply #'sequences:adjust-sequence (clone-into (allocate-instance (class-of list)) list) length args))
+
+(defmethod sequences:adjust-sequence ((list action-list) length &key initial-element initial-contents)
+  (let ((len (length (actions list))))
+    (when initial-contents
+      (unless (equal length (length initial-contents))
+        (error "initial-contents do not match requested size.")))
+    (cond ((= 0 length)
+           (loop for action = (pop (actions list))
+                 while action
+                 do (slot-makunbound action 'action-list)))
+          ((< len length)
+           (setf (cdr (last (actions list)))
+                 (loop repeat (- length len)
+                       for action = (if initial-element
+                                        (clone-into T initial-element)
+                                        (make-instance 'dummy-action))
+                       do (setf (action-list action) list)
+                       collect action)))
+          ((< length len)
+           (let ((cons (nthcdr (1- length) (actions list))))
+             (loop for action = (pop (cdr cons))
+                   while (cdr cons)
+                   do (slot-makunbound action 'action-list)))))
+    ;; Now replace contents
+    (when initial-contents
+      (loop for cons on (actions list)
+            for item in initial-contents
+            do (slot-makunbound (car cons) 'action-list)
+               (setf (action-list item) list)
+               (setf (car cons) item)))
+    list))
+
 (defmethod push-front ((action action) (list action-list))
   (setf (action-list action) list)
   (push action (actions list))
@@ -63,7 +97,7 @@
 
 (defmethod pop-action ((action action) (list action-list))
   (setf (actions list) (delete action (actions list)))
-  (slot-makunbound (action-list action) 'action-list)
+  (slot-makunbound action 'action-list)
   action)
 
 (defmethod update ((list action-list) dt)
@@ -143,11 +177,37 @@
 
 (defmethod start ((action action)))
 
+(defmethod start :before ((action action))
+  (setf (elapsed-time action) 0.0))
+
 (defmethod stop ((action action)))
+
+(defmethod clone-into :around ((new action) (action action))
+  (call-next-method)
+  new)
+
+(defmethod clone-into progn ((new (eql T)) (action action))
+  (clone-into (allocate-instance (class-of action)) action))
+
+(defmethod clone-into progn ((new action) (action action))
+  (setf (elapsed-time new) 0.0)
+  (setf (finished-p new) (finished-p action)))
 
 (defmethod update :after ((action time-limited-action) dt)
   (when (< (duration action) (elapsed-time action))
     (setf (finished-p action) T)))
+
+(defmethod clone-into progn ((new time-limited-action) (action time-limited-action))
+  (setf (duration new) (duration action)))
+
+(defmethod clone-into progn ((new lane-limited-action) (action lane-limited-action))
+  (setf (lanes new) (lanes action)))
+
+(defmethod update ((action dummy-action) dt)
+  (setf (finished-p action) T))
+
+(defmethod duration ((action dummy-action))
+  0.0)
 
 (defmethod update ((action delay-action) dt))
 
@@ -169,3 +229,13 @@
 
 (defmethod update ((action basic-action) dt)
   (funcall (update-fun action) action dt))
+
+(defmethod clone-into progn ((new basic-action) (action basic-action))
+  (setf (update-fun new) (update-fun action))
+  (setf (start-fun new) (start-fun action))
+  (setf (stop-fun new) (stop-fun action))
+  (setf (blocking-p new) (blocking-p action)))
+
+(defmethod clone-into progn ((new action-list) (list action-list))
+  (setf (actions new) (loop for action in (actions list)
+                            collect (clone-into T action))))

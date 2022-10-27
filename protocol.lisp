@@ -31,11 +31,17 @@
 (defgeneric start (action))
 (defgeneric stop (action))
 
+(defgeneric clone-into (target source)
+  (:method-combination progn :most-specific-last))
+
 (defclass time-limited-action (action)
   ((duration :initarg :duration :initform (error "DURATION required.") :accessor duration)))
 
 (defclass lane-limited-action (action)
   ((lanes :initarg :lanes :initform 1 :accessor lanes)))
+
+(defclass dummy-action (action)
+  ())
 
 (defclass delay-action (time-limited-action lane-limited-action)
   ((lanes :initform (1- (ash 1 32)))))
