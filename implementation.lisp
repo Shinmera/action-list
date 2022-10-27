@@ -151,6 +151,21 @@
 
 (defmethod update ((action delay-action) dt))
 
+(defmethod blocking-p ((action delay-action))
+  T)
+
 (defmethod update ((action synchronize-action) dt)
   (when (eq action (sequences:elt (action-list action) 0))
     (setf (finished-p action) T)))
+
+(defmethod blocking-p ((action synchronize-action))
+  T)
+
+(defmethod start ((action basic-action))
+  (funcall (start-fun action) action))
+
+(defmethod stop ((action basic-action))
+  (funcall (stop-fun action) action))
+
+(defmethod update ((action basic-action) dt)
+  (funcall (update-fun action) action dt))

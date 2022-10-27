@@ -35,9 +35,19 @@
   ((duration :initarg :duration :initform (error "DURATION required.") :accessor duration)))
 
 (defclass lane-limited-action (action)
-  ((lanes :initarg :lanes :initform (1- (ash 1 32)) :accessor lanes)))
+  ((lanes :initarg :lanes :initform 1 :accessor lanes)))
 
-(defclass delay-action (time-limited-action) ())
-(defclass synchronize-action (action) ())
-(defclass action-list-action (action action-list) ())
-(defclass basic-action (time-limited-action lane-limited-action) ())
+(defclass delay-action (time-limited-action lane-limited-action)
+  ((lanes :initform (1- (ash 1 32)))))
+
+(defclass synchronize-action (lane-limited-action)
+  ((lanes :initform (1- (ash 1 32)))))
+
+(defclass basic-action (time-limited-action lane-limited-action)
+  ((update-fun :initarg :update :initform (lambda (action dt) action) :accessor update-fun)
+   (start-fun :initarg :start :initform #'identity :accessor start-fun)
+   (stop-fun :initarg :stop-fun :initform #'identity :accessor stop-fun)
+   (blocking-p :initarg :blocking :initform NIL :accessor blocking-p)))
+
+(defclass action-list-action (action action-list)
+  ())
