@@ -72,9 +72,13 @@
     (loop while actions
           for action = (pop actions)
           do (when (< 0 (logand lanes (lanes action)))
-               (update action dt)
-               (when (blocking-p action)
-                 (setf lanes (logandc2 lanes (lanes action))))
+               ;; We have to check FINISHED-P twice. The first time to avoid the situation of
+               ;; the action being finished outside of its UPDATE, in which case we do not want
+               ;; to update it again or block later actions.
+               (unless (finished-p action)
+                 (update action dt)
+                 (when (blocking-p action)
+                   (setf lanes (logandc2 lanes (lanes action)))))
                (when (finished-p action)
                  (stop action)
                  ;; FIXME: This could be optimised to not have to search through the list again.
