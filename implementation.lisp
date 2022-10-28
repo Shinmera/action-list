@@ -130,8 +130,6 @@
                  ;; FIXME: This could be optimised to not have to search through the list again.
                  (pop-action action))))))
 
-;; TODO: implement these. It's a bit tricky, as we need to regard
-;;       blocking and non-blocking actions and multiple lanes
 (defmethod duration ((list action-list))
   (remaining-time list))
 
