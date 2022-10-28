@@ -34,3 +34,7 @@
    #:action-list-action
    #:basic
    #:ease)
+  (:export
+   #:action-list
+   #:define-action-list
+   #:define-action-definition-parser))

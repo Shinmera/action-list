@@ -73,13 +73,20 @@ See START
 See STOP")
 
   (function action-list
-    "Returns the action list in which it is contained.
+    "Returns the action list named by the symbol or in which the action is contained.
 
 If the action is not currently contained in an action list, an error
 is signalled instead.
+If the symbol does not name a globally defined action list, an error
+is signalled instead.
 
-See ACTION
-See ACTION-LIST (type)")
+When SETF, sets the global action list by that name. If the value is
+NIL, the binding is removed. If the value is not an action-list, an
+error is signalled.
+
+See ACTION (type)
+See ACTION-LIST (type)
+See DEFINE-ACTION-LIST")
   
   (function push-front
     "Push the action to the front of the action list.
@@ -275,3 +282,52 @@ the range [0,1] and should return another value to linearly
 interpolate between FROM and TO.
 
 See BASIC"))
+
+(docs:define-docs
+  (function define-action-list
+    "Define a globally named action list.
+
+This is useful to define more static action lists such as animation
+sequences and other fixed sequences of events that don't require the
+more specific capabilities of action lists with dynamic action
+insertion and removal.
+
+It is intended that you instantiate a global action list for use like
+so:
+
+  (make-instance (action-list 'foo))
+
+Each of the body forms is an action definition, parsed into an action
+constructor. By default the following are recognised:
+
+  (EVAL form...)
+     An action that runs exactly once and executes the given FORMs.
+  (SETF place value...)
+     Same as EVAL except wrapped in setf.
+  (EASE duration place initarg...)
+     Sets PLACE to the value obtained by the EASE action. The action
+     is blocking by default.
+  (DELAY duration initarg...)
+     Delays later actions by the given duration.
+  (SYNCHRONIZE initarg...)
+     Delays later actions until all prior actions finish.
+
+Note that the symbol at the front of each definition names how to
+parse the rest, and must be a symbol. However, it must not necessarily
+be a symbol from the ORG.SHIRAKUMO.FRAF.ACTION-LIST package. If the
+symbol does not match exactly, a string search is performed
+instead. This allows convenient definition of action lists without
+importing the relevant symbols.
+
+Further syntax can be added via DEFINE-ACTION-DEFINITION-PARSER
+
+See ACTION-LIST (function)
+See DEFINE-ACTION-DEFINITION-PARSER")
+
+  (function define-action-definition-parser
+    "Define a parsing function for action definitions.
+
+The ARGS destructure the action definition. Should emit a form that
+evaluates to a fresh ACTION instance.
+
+See DEFINE-ACTION-LIST"))

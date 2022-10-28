@@ -15,6 +15,7 @@
   :components ((:file "package")
                (:file "protocol")
                (:file "implementation")
+               (:file "definition")
                (:file "documentation"))
   :depends-on (:documentation-utils
                :trivial-extensible-sequences))
