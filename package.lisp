@@ -28,8 +28,9 @@
    #:clone-into
    #:time-limited-action
    #:lane-limited-action
-   #:dummy-action
-   #:delay-action
-   #:synchronize-action
+   #:dummy
+   #:delay
+   #:synchronize
    #:action-list-action
-   #:basic-action))
+   #:basic
+   #:ease)

@@ -26,6 +26,8 @@ the new actions as supplied are inserted instead.
 In short, copied action-lists will not contain actions that are EQ to
 the ones of the source list.
 
+An action list can be copied via COPY-SEQ or MAKE-INSTANCE.
+
 See ACTION
 See PUSH-FRONT
 See PUSH-BACK
@@ -108,7 +110,9 @@ list.
 See ACTION (type)")
   
   (function pop-action
-    "Removes the action from the action list.
+    "Removes the action from its action list.
+
+Signals an error if the action is not contained in any action list.
 
 See ACTION (type)
 See ACTION-LIST (type)")
@@ -216,12 +220,12 @@ Accepts the LANES as an  initarg.
 See ACTION (type)
 See LANES")
 
-  (type dummy-action
+  (type dummy
     "Action that immediately finishes.
 
 SEE ACTION (type)")
   
-  (type delay-action
+  (type delay
     "Action that delays execution by the passed DURATION.
 
 By default blocks all lanes.
@@ -229,14 +233,14 @@ By default blocks all lanes.
 See TIME-LIMITED-ACTION
 See LANE-LIMITED-ACTION")
   
-  (type synchronize-action
+  (type synchronize
     "Action that finishes once it reaches the front of the list.
 
 By default blocks all lanes.
 
 See LANE-LIMITED-ACTION")
   
-  (type basic-action
+  (type basic
     "Action that lets you dynamically specify its parts.
 
 To customise UPDATE, pass a closure of two arguments (the action and
@@ -255,4 +259,19 @@ See TIME-LIMITED-ACTION")
     "Action that is simultaneously an action-list. Lets you hierarchically nest actions.
 
 See ACTION-LIST (type)
-See ACTION (type)"))
+See ACTION (type)")
+
+  (type ease
+    "Action that uses an easing function to tween between values.
+
+The UPDATE-FUN receives two arguments: the action, and the current
+value, rather than the delta. The current value is computed as
+follows:
+
+  from + ease-fun(elapsed / duration) * (to-from)
+
+The EASE-FUN should be a function of one argument, a single-float in
+the range [0,1] and should return another value to linearly
+interpolate between FROM and TO.
+
+See BASIC"))

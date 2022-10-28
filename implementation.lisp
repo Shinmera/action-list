@@ -6,6 +6,13 @@
 
 (in-package #:org.shirakumo.fraf.action-list)
 
+(defmethod make-instance ((list action-list) &key)
+  (clone-into (allocate-instance (class-of list)) list))
+
+(defmethod shared-initialize :after ((list action-list) slots &key (actions () actions-p))
+  (when actions-p
+    (sequences:adjust-sequence list (length actions) :initial-contents actions)))
+
 (defmethod sequences:length ((list action-list))
   (length (actions list)))
 
@@ -37,7 +44,7 @@
                  (loop repeat (- length len)
                        for action = (if initial-element
                                         (clone-into T initial-element)
-                                        (make-instance 'dummy-action))
+                                        (make-instance 'dummy))
                        do (setf (action-list action) list)
                        collect action)))
           ((< length len)
@@ -53,6 +60,10 @@
                (setf (action-list item) list)
                (setf (car cons) item)))
     list))
+
+(defmethod clone-into progn ((new action-list) (list action-list))
+  (setf (actions new) (loop for action in (actions list)
+                            collect (clone-into T action))))
 
 (defmethod push-front ((action action) (list action-list))
   (setf (action-list action) list)
@@ -95,10 +106,11 @@
     (start new)
     new))
 
-(defmethod pop-action ((action action) (list action-list))
-  (setf (actions list) (delete action (actions list)))
-  (slot-makunbound action 'action-list)
-  action)
+(defmethod pop-action ((action action))
+  (let ((list (action-list action)))
+    (setf (actions list) (delete action (actions list)))
+    (slot-makunbound action 'action-list)
+    action))
 
 (defmethod update ((list action-list) dt)
   (let ((lanes (1- (ash 1 32)))
@@ -116,7 +128,7 @@
                (when (finished-p action)
                  (stop action)
                  ;; FIXME: This could be optimised to not have to search through the list again.
-                 (pop-action action list))))))
+                 (pop-action action))))))
 
 ;; TODO: implement these. It's a bit tricky, as we need to regard
 ;;       blocking and non-blocking actions and multiple lanes
@@ -203,39 +215,41 @@
 (defmethod clone-into progn ((new lane-limited-action) (action lane-limited-action))
   (setf (lanes new) (lanes action)))
 
-(defmethod update ((action dummy-action) dt)
+(defmethod update ((action dummy) dt)
   (setf (finished-p action) T))
 
-(defmethod duration ((action dummy-action))
+(defmethod duration ((action dummy))
   0.0)
 
-(defmethod update ((action delay-action) dt))
+(defmethod update ((action delay) dt))
 
-(defmethod blocking-p ((action delay-action))
+(defmethod blocking-p ((action delay))
   T)
 
-(defmethod update ((action synchronize-action) dt)
+(defmethod update ((action synchronize) dt)
   (when (eq action (sequences:elt (action-list action) 0))
     (setf (finished-p action) T)))
 
-(defmethod blocking-p ((action synchronize-action))
+(defmethod blocking-p ((action synchronize))
   T)
 
-(defmethod start ((action basic-action))
+(defmethod start ((action basic))
   (funcall (start-fun action) action))
 
-(defmethod stop ((action basic-action))
+(defmethod stop ((action basic))
   (funcall (stop-fun action) action))
 
-(defmethod update ((action basic-action) dt)
+(defmethod update ((action basic) dt)
   (funcall (update-fun action) action dt))
 
-(defmethod clone-into progn ((new basic-action) (action basic-action))
+(defmethod clone-into progn ((new basic) (action basic))
   (setf (update-fun new) (update-fun action))
   (setf (start-fun new) (start-fun action))
   (setf (stop-fun new) (stop-fun action))
   (setf (blocking-p new) (blocking-p action)))
 
-(defmethod clone-into progn ((new action-list) (list action-list))
-  (setf (actions new) (loop for action in (actions list)
-                            collect (clone-into T action))))
+(defmethod update ((action easing) dt)
+  (let* ((x (/ (elapsed-time action) (duration action)))
+         (x (funcall (ease-fun action) (min 1.0 (max 0.0 x))))
+         (x (+ (from action) (* x (- (to action) (from action))))))
+    (funcall (update-fun action) action x)))

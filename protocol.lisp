@@ -18,7 +18,7 @@
 (defgeneric push-back (new-action action-list))
 (defgeneric push-before (new-action action))
 (defgeneric push-after (new-action action))
-(defgeneric pop-action (action action-list))
+(defgeneric pop-action (action))
 
 (defgeneric update (object dt))
 (defgeneric duration (object))
@@ -40,16 +40,16 @@
 (defclass lane-limited-action (action)
   ((lanes :initarg :lanes :initform 1 :accessor lanes)))
 
-(defclass dummy-action (action)
+(defclass dummy (action)
   ())
 
-(defclass delay-action (time-limited-action lane-limited-action)
+(defclass delay (time-limited-action lane-limited-action)
   ((lanes :initform (1- (ash 1 32)))))
 
-(defclass synchronize-action (lane-limited-action)
+(defclass synchronize (lane-limited-action)
   ((lanes :initform (1- (ash 1 32)))))
 
-(defclass basic-action (time-limited-action lane-limited-action)
+(defclass basic (time-limited-action lane-limited-action)
   ((update-fun :initarg :update :initform (lambda (action dt) action) :accessor update-fun)
    (start-fun :initarg :start :initform #'identity :accessor start-fun)
    (stop-fun :initarg :stop-fun :initform #'identity :accessor stop-fun)
@@ -57,3 +57,8 @@
 
 (defclass action-list-action (action action-list)
   ())
+
+(defclass ease (basic)
+  ((ease-fun :initarg :ease :initform #'identity :accessor ease-fun)
+   (from :initarg :from :initform 0.0 :accessor from)
+   (to :initarg :to :initform 1.0 :accessor to)))
