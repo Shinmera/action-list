@@ -13,6 +13,10 @@
   (when actions-p
     (sequences:adjust-sequence list (length actions) :initial-contents actions)))
 
+(defmethod print-object ((list action-list) stream)
+  (print-unreadable-object (list stream :type T :identity T)
+    (format stream "~,1f / ~,1f (~d)" (elapsed-time list) (duration list) (length (actions list)))))
+
 (defmethod sequences:length ((list action-list))
   (length (actions list)))
 
@@ -39,6 +43,14 @@
            (loop for action = (pop (actions list))
                  while action
                  do (slot-makunbound action 'action-list)))
+          ((= 0 len)
+           (setf (actions list)
+                 (loop repeat length
+                       for action = (if initial-element
+                                        (clone-into T initial-element)
+                                        (make-instance 'dummy))
+                       do (setf (action-list action) list)
+                       collect action)))
           ((< len length)
            (setf (cdr (last (actions list)))
                  (loop repeat (- length len)
@@ -134,21 +146,19 @@
   (incf (elapsed-time list) dt))
 
 (defmethod duration ((list action-list))
-  (remaining-time list))
+  (+ (elapsed-time list) (remaining-time list)))
 
 (defmethod remaining-time ((list action-list))
-  (let ((lanes (1- (ash 1 32)))
-        (remaining 0.0)
+  (let ((remaining 0.0)
         (choices (list 0.0)))
+    ;; FIXME: pretty sure this is not correct in the presence of lanes.
     (loop for action in (actions list)
-          do (when (< 0 (logand lanes (lanes action)))
-               (cond ((blocking-p action)
-                      (incf remaining (reduce #'max choices))
-                      (incf remaining (remaining-time action))
-                      (setf choices (list 0.0))
-                      (setf lanes (logandc2 lanes (lanes action))))
-                     (T
-                      (push (remaining-time action) choices)))))
+          do (cond ((blocking-p action)
+                    (incf remaining (reduce #'max choices))
+                    (incf remaining (remaining-time action))
+                    (setf choices (list 0.0)))
+                   (T
+                    (push (remaining-time action) choices))))
     (incf remaining (reduce #'max choices))))
 
 (defmethod blocking-p ((list action-list))
@@ -157,6 +167,10 @@
 
 (defmethod finished-p ((list action-list))
   (null (actions list)))
+
+(defmethod print-object ((action action) stream)
+  (print-unreadable-object (action stream :type T :identity T)
+    (format stream "~,1f / ~,1f ~:[~;BLOCKING~]" (elapsed-time action) (duration action) (blocking-p action))))
 
 (defmethod update :after ((action action) dt)
   (incf (elapsed-time action) dt))
