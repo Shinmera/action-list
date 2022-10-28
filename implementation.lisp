@@ -234,7 +234,7 @@
   (setf (stop-fun new) (stop-fun action))
   (setf (blocking-p new) (blocking-p action)))
 
-(defmethod update ((action easing) dt)
+(defmethod update ((action ease) dt)
   (let* ((x (/ (elapsed-time action) (duration action)))
          (x (funcall (ease-fun action) (min 1.0 (max 0.0 x))))
          (x (+ (from action) (* x (- (to action) (from action))))))
