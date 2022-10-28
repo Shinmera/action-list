@@ -130,23 +130,11 @@
                  ;; FIXME: This could be optimised to not have to search through the list again.
                  (pop-action action))))))
 
+(defmethod update :after ((list action-list) dt)
+  (incf (elapsed-time list) dt))
+
 (defmethod duration ((list action-list))
   (remaining-time list))
-
-(defmethod elapsed-time ((list action-list))
-  (let ((lanes (1- (ash 1 32)))
-        (elapsed 0.0)
-        (choices (list 0.0)))
-    (loop for action in (actions list)
-          do (when (< 0 (logand lanes (lanes action)))
-               (cond ((blocking-p action)
-                      (incf elapsed (reduce #'max choices))
-                      (incf elapsed (elapsed-time action))
-                      (setf choices (list 0.0))
-                      (setf lanes (logandc2 lanes (lanes action))))
-                     (T
-                      (push (elapsed-time action) choices)))))
-    (incf elapsed (reduce #'max choices))))
 
 (defmethod remaining-time ((list action-list))
   (let ((lanes (1- (ash 1 32)))
