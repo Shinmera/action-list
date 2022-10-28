@@ -74,8 +74,12 @@
     list))
 
 (defmethod clone-into progn ((new action-list) (list action-list))
+  (setf (elapsed-time new) (elapsed-time list))
   (setf (actions new) (loop for action in (actions list)
-                            collect (clone-into T action))))
+                            for clone = (clone-into T action)
+                            do (setf (action-list clone) list)
+                            collect clone))
+  new)
 
 (defmethod push-front ((action action) (list action-list))
   (setf (action-list action) list)
@@ -138,9 +142,12 @@
                  (when (blocking-p action)
                    (setf lanes (logandc2 lanes (lanes action)))))
                (when (finished-p action)
-                 (stop action)
-                 ;; FIXME: This could be optimised to not have to search through the list again.
-                 (pop-action action))))))
+                 (stop action))))
+    (setf (actions list) (delete-if (lambda (action)
+                                      (when (finished-p action)
+                                        (slot-makunbound action 'action-list)
+                                        T))
+                                    (actions list)))))
 
 (defmethod update :after ((list action-list) dt)
   (incf (elapsed-time list) dt))
@@ -253,3 +260,8 @@
          (x (funcall (ease-fun action) (min 1.0 (max 0.0 x))))
          (x (+ (from action) (* x (- (to action) (from action))))))
     (funcall (update-fun action) action x)))
+
+(defmethod clone-into progn ((new ease) (action ease))
+  (setf (ease-fun new) (ease-fun action))
+  (setf (from new) (from action))
+  (setf (to new) (to action)))
