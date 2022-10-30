@@ -6,15 +6,15 @@ The interface is all rather straight-forward to use, with a variety of push func
 
 :: common lisp
 (make-instance 'action-list:action-list)
-(action-list:push-front (make-instance 'action-list:basic-action :update (lambda (a dt) (print dt)) :duration 1.0) *)
+(action-list:push-front (make-instance 'action-list:basic :update (lambda (a dt) (print dt)) :duration 1.0) *)
 (dotimes (i 20)
   (action-list:update ** 0.1))
 ::
 
-You can either subclass ``action`` to roll your own types, or use the ``basic-action`` and supply the various parts you want to customise with closures.
+You can either subclass ``action`` to roll your own types, or use the ``basic`` action and supply the various parts you want to customise with closures.
 
 If an action is ``blocking-p``, it will prevent later actions in the list from running. Without blocking actions, all actions will be updated in sequence. Blocking this from happening can be useful to ensure a sequence of actions take place.
 
-To this end there are also the shorthand action types ``delay-action`` (to delay updates until a given point) and ``synchronize-action`` to block until all "parallel" actions before it have completed.
+To this end there are also the shorthand action types ``delay`` (to delay updates until a given point) and ``synchronize`` to block until all "parallel" actions before it have completed.
 
 The ``action-list`` is also a standard ``sequence`` so you can iterate over it with ``sequences:dosequence`` and use other standard sequence operators. Note that an ``action`` instance can only be contained on a single ``action-list`` at any time. In order to copy an ``action-list``, then, each ``action`` contained needs to be copied as well. The ``copy-into`` function is used to customise this behaviour when necessary. If you create your own actions that require extra slots, make sure to properly implement ``copy-into``.
