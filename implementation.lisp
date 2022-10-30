@@ -28,8 +28,49 @@
     (slot-makunbound (car cons) 'action-list)
     (setf (car cons) action)))
 
-(defmethod sequences:make-sequence-iterator ((list action-list) &rest args)
-  (apply #'sequences:make-sequence-iterator (actions list) args))
+;; Copied from sbcl's list iterator.
+(let ((exhausted (cons NIL NIL)))
+  (defmethod sequences:make-sequence-iterator ((sequence action-list) &key (start 0) end from-end)
+    (multiple-value-bind (iterator limit from-end)
+        (let ((list (actions sequence)))
+          (if from-end
+              (let* ((termination (if (= start 0) exhausted (nthcdr (1- start) list)))
+                     (init (if (<= (or end (length list)) start)
+                               termination
+                               (if end (last list (- (length list) (1- end))) (last list)))))
+                (values init termination t))
+              (cond
+                ((not end) (values (nthcdr start list) nil nil))
+                (t (let ((st (nthcdr start list)))
+                     (values st (nthcdr (- end start) st) nil))))))
+      (values iterator limit from-end
+              (if from-end
+                  (lambda (sequence iterator from-end)
+                    (declare (ignore from-end))
+                    (if (eq iterator (actions sequence))
+                        exhausted
+                        (do* ((cdr (actions sequence) (cdr cdr)))
+                             ((eq (cdr cdr) iterator) cdr))))
+                  (lambda (sequence iterator from-end)
+                    (declare (ignore sequence from-end))
+                    (cdr iterator)))
+              (lambda (sequence iterator limit from-end)
+                (declare (ignore sequence from-end))
+                (eq iterator limit))
+              (lambda (sequence iterator)
+                (declare (ignore sequence))
+                (car iterator))
+              (lambda (new-value sequence iterator)
+                (declare (ignore sequence))
+                (setf (car iterator) new-value))
+              (lambda (sequence iterator)
+                (loop for cdr on (actions sequence)
+                      for i from 0
+                      when (eq cdr iterator)
+                      return i))
+              (lambda (sequence iterator)
+                (declare (ignore sequence))
+                iterator)))))
 
 (defmethod sequences:make-sequence-like ((list action-list) length &rest args)
   (apply #'sequences:adjust-sequence (clone-into (allocate-instance (class-of list)) list) length args))
