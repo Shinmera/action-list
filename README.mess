@@ -5,10 +5,21 @@ This library implements the "action list"(link https://gamedevelopment.tutsplus.
 The interface is all rather straight-forward to use, with a variety of push functions to insert actions at the appropriate places.
 
 :: common lisp
-(make-instance 'action-list:action-list)
-(action-list:push-front (make-instance 'action-list:basic :update (lambda (a dt) (print dt)) :duration 1.0) *)
-(dotimes (i 20)
-  (action-list:update ** 0.1))
+CL-USER> (defvar *l* (make-instance 'org.shirakumo.fraf.action-list:action-list))
+
+CL-USER> (org.shirakumo.fraf.action-list:push-front
+          (make-instance 'org.shirakumo.fraf.action-list:basic
+                         :update (lambda (a dt)
+                                   (print dt))
+                         :duration 1.0)
+          *l*)
+
+CL-USER> (dotimes (i 20)
+           (org.shirakumo.fraf.action-list:update *l* 0.1))
+
+0.1
+0.1
+0.1
 ::
 
 You can either subclass ``action`` to roll your own types, or use the ``basic`` action and supply the various parts you want to customise with closures.
