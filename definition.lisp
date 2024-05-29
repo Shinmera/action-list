@@ -54,3 +54,11 @@
 
 (define-action-definition-parser synchronize (&rest initargs)
   `(make-instance 'synchronize ,@initargs))
+
+(define-action-definition-parser repeat (duration interval &rest body)
+  `(make-instance 'repeat :update (lambda (action dt)
+                                    (declare (ignore action dt))
+                                    ,@body)
+                          :duration ,duration
+                          :interval ,interval
+                          :blocking T))

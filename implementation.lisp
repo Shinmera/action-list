@@ -300,3 +300,12 @@
   (setf (ease-fun new) (ease-fun action))
   (setf (from new) (from action))
   (setf (to new) (to action)))
+
+(defmethod update ((action repeat) dt)
+  (when (<= (interval action) (incf (last-time action) dt))
+    (setf (last-time action) (mod (last-time action) (interval action)))
+    (funcall (update-fun action) action dt)))
+
+(defmethod clone-into progn ((new repeat) (action repeat))
+  (setf (interval new) (interval action))
+  (setf (last-time new) (last-time action)))

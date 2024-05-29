@@ -57,3 +57,7 @@
   ((ease-fun :initarg :ease :initform #'identity :accessor ease-fun)
    (from :initarg :from :initform 0.0 :accessor from)
    (to :initarg :to :initform 1.0 :accessor to)))
+
+(defclass repeat (basic)
+  ((interval :initarg :interval :initform 0.1 :accessor interval)
+   (last-time :initform 0.0 :accessor last-time)))

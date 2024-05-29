@@ -27,7 +27,8 @@
    #:synchronize
    #:action-list-action
    #:basic
-   #:ease)
+   #:ease
+   #:repeat)
   (:export
    #:action-list
    #:define-action-list

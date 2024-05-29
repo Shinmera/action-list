@@ -275,6 +275,13 @@ The EASE-FUN should be a function of one argument, a single-float in
 the range [0,1] and should return another value to linearly
 interpolate between FROM and TO.
 
+See BASIC")
+
+  (type repeat
+    "Action that repeats the update only in specific intervals.
+
+The UPDATE-FUN receives two arguments: the action, and the delta.
+
 See BASIC"))
 
 (docs:define-docs
@@ -305,6 +312,9 @@ constructor. By default the following are recognised:
      Delays later actions by the given duration.
   (SYNCHRONIZE initarg...)
      Delays later actions until all prior actions finish.
+  (REPEAT duration interval form...)
+     An action that runs every INTERVAL seconds for up to DURATION.
+     The action is blocking.
 
 Note that the symbol at the front of each definition names how to
 parse the rest, and must be a symbol. However, it must not necessarily
