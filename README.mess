@@ -1,5 +1,5 @@
 # About Action List
-This library implements the "action list"(link https://gamedevelopment.tutsplus.com/tutorials/the-action-list-data-structure-good-for-ui-ai-animations-and-more--gamedev-9264) data structure. This structure or paradigm is a useful alternative to state machines, and is especially suited for problems that have a temporal component.
+This library implements the "action list"(link https://web.archive.org/web/20231022132009/https://gamedevelopment.tutsplus.com/the-action-list-data-structure-good-for-ui-ai-animations-and-more--gamedev-9264t) data structure. This structure or paradigm is a useful alternative to state machines, and is especially suited for problems that have a temporal component.
 
 ## How To
 The interface is all rather straight-forward to use, with a variety of push functions to insert actions at the appropriate places.
