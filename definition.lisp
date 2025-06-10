@@ -15,7 +15,7 @@
 
 (defmacro define-action-list (name &body actions)
   `(setf (action-list ',name)
-         (make-instance 'action-list :actions (list ,@(mapcar #'compile-action-definition actions)))))
+         (make-instance 'action-list :name ',name :actions (list ,@(mapcar #'compile-action-definition actions)))))
 
 (defun compile-action-definition (definition)
   (destructuring-bind (type &rest args) definition

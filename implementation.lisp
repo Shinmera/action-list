@@ -9,7 +9,7 @@
 
 (defmethod print-object ((list action-list) stream)
   (print-unreadable-object (list stream :type T :identity T)
-    (format stream "~,1f / ~,1f (~d)" (elapsed-time list) (duration list) (length (actions list)))))
+    (format stream "~@[~a ~]~,1f / ~,1f (~d)" (name list) (elapsed-time list) (duration list) (length (actions list)))))
 
 (defmethod sequences:length ((list action-list))
   (length (actions list)))
@@ -109,6 +109,7 @@
     list))
 
 (defmethod clone-into progn ((new action-list) (list action-list))
+  (setf (name new) (name list))
   (setf (elapsed-time new) (elapsed-time list))
   (setf (actions new) (loop for action in (actions list)
                             for clone = (clone-into T action)

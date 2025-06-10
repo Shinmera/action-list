@@ -1,7 +1,8 @@
 (in-package #:org.shirakumo.fraf.action-list)
 
 (defclass action-list (sequences:sequence standard-object)
-  ((actions :initform () :accessor actions)
+  ((name :initarg :name :initform NIL :accessor name)
+   (actions :initform () :accessor actions)
    (elapsed-time :initform 0.0 :accessor elapsed-time)))
 
 (defclass action ()
