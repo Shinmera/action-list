@@ -4,7 +4,7 @@
   :author "Yukari Hafner <shinmera@tymoon.eu>"
   :maintainer "Yukari Hafner <shinmera@tymoon.eu>"
   :description "An implementation of action lists"
-  :homepage "https://github.com/Shinmera/action-list"
+  :homepage "https://shinmera.com/project/action-list"
   :serial T
   :components ((:file "package")
                (:file "protocol")
